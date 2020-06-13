@@ -2,7 +2,7 @@ from urllib.request import urlopen
 import math
 import hashlib
 import pickle
-from os import path
+from os import path, getenv
 
 class Deck:
 
@@ -12,20 +12,21 @@ class Deck:
         page = urlopen(link).read().decode("utf-8")
         decklists = page.find("store.tcgplayer.com/massentry") + 127
         deckliste = page.find("\"", decklists)
+
+        decklist = []
+        nonsingleton = getenv("NON_SINGLE").split("|")
+        banned = getenv("BANNED").split("|")
         
         #Split the list into an array
-        decklist = []
         for i in page[decklists:deckliste].split("||"):
-            # REPLACE need a better way to check for multi-legal cards
-            if i[:1] != '1' and ((i[2:] != "Seven Dwarves") and (i[2:] != "Rat Colony") and (i[2:] != "Persistent Petitioners")):
+            # Checks for singleton, ignores cards that allow multiples
+            if i[:1] != '1' and (i[2:] not in nonsingleton):
                 return "Deck isn't singleton"
+            # Checks for banned cards
+            elif (i[2:] in banned):
+                return "Deck contains banned cards"
             else:
                 decklist.append([ int(i[:1]), i[2:].replace("&#x27;", "'") ])
-        
-        # REPLACE with better system that handles multiple cards
-        #Check ban list
-        if ["1", "Oko, Thief of Crowns"] in decklist:
-            return "Deck contains banned cards"
         
         # Get Basic land count, and add to deck list
         basics = []
