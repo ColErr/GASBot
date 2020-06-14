@@ -32,6 +32,16 @@ class GASBot:
             for guild in self.bot.guilds:
                 print(f"Joined {guild.name}")
         
+        @self.bot.event
+        async def on_command_error(ctx, error):
+            print(f"Handling error {error}")
+            if isinstance(error, commands.CommandNotFound):
+                print(f"Command {ctx.command} not found")
+                return
+            if isinstance(error, commands.MissingRequiredArgument):
+                print("Command missing arguments")
+                await ctx.send(ctx.command.help)
+        
     
     def setup_commands(self):
         def check_only_me():
@@ -45,7 +55,7 @@ class GASBot:
             print("I was asked to shutdown")
             await self.bot.close()
             
-        @self.bot.command(name="lfg")
+        @self.bot.command(name="lfg", help="Join the LFG queue with !lfg <aetherhub deck number>")
         async def lfg(ctx, decknum):
             async with ctx.channel.typing():
                 deckID = Deck.importDeck(decknum)
@@ -64,7 +74,7 @@ class GASBot:
                 await ctx.send(f"{ctx.author.mention}, you are playing {opp.mention}")
             return
             
-        @self.bot.command(name="report")
+        @self.bot.command(name="report", help="Report your match result with !report <wins> <losses>")
         async def report(ctx, wins: int, losses: int):
             c = self.database.cursor()
             c.execute('''
