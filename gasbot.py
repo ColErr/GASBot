@@ -61,8 +61,7 @@ class GASBot:
                     VALUES(?, ?, 0, 0, ?, ?, 0, 0);
                     ''', (match[0], match[1], ctx.author.id, deckID))
                 self.database.commit()
-                message = ctx.author.mention + ", you are playing " + opp.mention
-                await ctx.send(message)
+                await ctx.send(f"{ctx.author.mention}, you are playing {opp.mention}")
             return
             
         @self.bot.command(name="report")
@@ -76,16 +75,16 @@ class GASBot:
             result = c.fetchone()
             
             if result == None:
-                await ctx.send("No matches found for " + ctx.author.mention)
+                await ctx.send(f"No matches found for {ctx.author.mention}")
                 return
             
             if result[1] == ctx.author.id:
                 if result[2] == 1:
-                    await ctx.send(ctx.author.mention + ", you have already reported your last match")
+                    await ctx.send(f"{ctx.author.mention}, you have already reported your last match")
                     return
                 if result[5] == 1:
                     if (result[3] != wins) or (result[6] != losses):
-                        await ctx.send(ctx.author.mention + ", there is a mismatch with your last opponent")
+                        await ctx.send(f"{ctx.author.mention}, there is a mismatch with your last opponent")
                         return
                 self.database.execute('''
                     UPDATE matches SET
@@ -96,11 +95,11 @@ class GASBot:
                 ''', (wins, losses, result[0]))
             else:
                 if result[5] == 1:
-                    await ctx.send(ctx.author.mention + ", you have already reported your last match")
+                    await ctx.send(f"{ctx.author.mention}, you have already reported your last match")
                     return
                 if result[2] == 1:
                     if (result[6] != wins) or (result[3] != losses):
-                        await ctx.send(ctx.author.mention + ", there is a mismatch with your last opponent")
+                        await ctx.send(f"{ctx.author.mention}, there is a mismatch with your last opponent")
                         return
                 self.database.execute('''
                     UPDATE matches SET
@@ -111,7 +110,7 @@ class GASBot:
                 ''', (losses, wins, result[0]))
             
             self.database.commit()
-            await ctx.send(ctx.author.mention + ", your match result has been recorded")
+            await ctx.send(f"{ctx.author.mention}, your match result has been recorded")
             return
         
         @self.bot.command(name="leave")
@@ -120,11 +119,11 @@ class GASBot:
             for x in self.lfgqueue:
                 if ctx.author.id == x[0]:
                     self.lfgqueue.pop(i)
-                    await ctx.send(ctx.author.mention + ", you have been dropped from the queue")
+                    await ctx.send(f"{ctx.author.mention}, you have been dropped from the queue")
                     return
                 else:
                     i += 1
-            await ctx.send(ctx.author.mention + ", you are not in the queue")
+            await ctx.send(f"{ctx.author.mention}, you are not in the queue")
             
     def setup_db(self, name):
         self.database = None
