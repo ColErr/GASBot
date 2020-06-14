@@ -21,10 +21,10 @@ class Deck:
         for i in page[decklists:deckliste].split("||"):
             # Checks for singleton, ignores cards that allow multiples
             if i[:1] != '1' and (i[2:] not in nonsingleton):
-                return "Deck isn't singleton"
+                return [1, "Deck isn't singleton"]
             # Checks for banned cards
             elif (i[2:] in banned):
-                return "Deck contains banned cards"
+                return [1, "Deck contains banned cards"]
             else:
                 decklist.append([ int(i[:1]), i[2:].replace("&#x27;", "'") ])
         
@@ -43,7 +43,7 @@ class Deck:
         for i in decklist:
             cardcount += i[0]
         if cardcount < 100:
-            return "Deck has too few cards"
+            return [1, "Deck has too few cards"]
         
         #Create a hash of the deck to compare to database
         h = hashlib.md5()
@@ -57,5 +57,5 @@ class Deck:
             with open("decks/"+deckhash, 'wb') as fp:
                 pickle.dump(decklist, fp)
         
-        return deckhash
+        return [0, deckhash]
         

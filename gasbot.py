@@ -36,7 +36,7 @@ class GASBot:
         async def on_command_error(ctx, error):
             print(f"Handling error {error}")
             if isinstance(error, commands.CommandNotFound):
-                print(f"Command {ctx.command} not found")
+                print(f"Command {ctx.command.name} not found")
                 return
             if isinstance(error, commands.MissingRequiredArgument):
                 print("Command missing arguments")
@@ -56,20 +56,24 @@ class GASBot:
             await self.bot.close()
             
         @self.bot.command(name="lfg", help="Join the LFG queue with !lfg <aetherhub deck number>")
-        async def lfg(ctx, decknum):
+        async def lfg(ctx, decknum: int):
             async with ctx.channel.typing():
-                deckID = Deck.importDeck(decknum)
+                deckcheck = Deck.importDeck(str(decknum))
+            
+            if deckcheck[0] > 0:
+                await ctx.send(f"{ctx.author.mention}, deck check failed: {deckcheck[1]}")
+                return
             
             if len(self.lfgqueue) == 0:
-                self.lfgqueue.append([ctx.author.id, deckID])
-                await ctx.send("You have joined the queue")
+                self.lfgqueue.append([ctx.author.id, deckcheck[1]])
+                await ctx.send(f"{ctx.author.mention}, you have joined the queue")
             else:
                 match = self.lfgqueue.pop(0)
                 opp = await self.bot.fetch_user(match[0])
                 self.database.execute('''
                     INSERT INTO matches(player1, p1deck, p1wins, p1confirm, player2, p2deck, p2wins, p2confirm)
                     VALUES(?, ?, 0, 0, ?, ?, 0, 0);
-                    ''', (match[0], match[1], ctx.author.id, deckID))
+                    ''', (match[0], match[1], ctx.author.id, deckcheck[1]))
                 self.database.commit()
                 await ctx.send(f"{ctx.author.mention}, you are playing {opp.mention}")
             return
