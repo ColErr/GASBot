@@ -65,7 +65,56 @@ class GASBot:
                 await ctx.send(message)
             return
             
-        @self.bot.command(name="leavequeue")
+        @self.bot.command(name="report")
+        async def report(ctx, wins: int, losses: int):
+            c = self.database.cursor()
+            c.execute('''
+                SELECT id, player1, p1confirm, p1wins, player2, p2confirm, p2wins FROM matches
+                WHERE player1 = ? OR player2 = ?
+                ORDER BY id DESC LIMIT 1;
+                ''', (ctx.author.id, ctx.author.id))
+            result = c.fetchone()
+            
+            if result == None:
+                await ctx.send("No matches found for " + ctx.author.mention)
+                return
+            
+            if result[1] == ctx.author.id:
+                if result[2] == 1:
+                    await ctx.send(ctx.author.mention + ", you have already reported your last match")
+                    return
+                if result[5] == 1:
+                    if (result[3] != wins) or (result[6] != losses):
+                        await ctx.send(ctx.author.mention + ", there is a mismatch with your last opponent")
+                        return
+                self.database.execute('''
+                    UPDATE matches SET
+                    p1confirm = 1, 
+                    p1wins = ?, 
+                    p2wins = ?
+                    WHERE id = ?;
+                ''', (wins, losses, result[0]))
+            else:
+                if result[5] == 1:
+                    await ctx.send(ctx.author.mention + ", you have already reported your last match")
+                    return
+                if result[2] == 1:
+                    if (result[6] != wins) or (result[3] != losses):
+                        await ctx.send(ctx.author.mention + ", there is a mismatch with your last opponent")
+                        return
+                self.database.execute('''
+                    UPDATE matches SET
+                    p2confirm = 1, 
+                    p1wins = ?, 
+                    p2wins = ?
+                    WHERE id = ?;
+                ''', (losses, wins, result[0]))
+            
+            self.database.commit()
+            await ctx.send(ctx.author.mention + ", your match result has been recorded")
+            return
+        
+        @self.bot.command(name="leave")
         async def leavequeue(ctx):
             i=0
             for x in self.lfgqueue:
