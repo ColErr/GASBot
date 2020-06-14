@@ -57,6 +57,19 @@ class GASBot:
             
         @self.bot.command(name="lfg", help="Join the LFG queue with !lfg <aetherhub deck number>")
         async def lfg(ctx, decknum: int):
+            c = self.database.cursor()
+            c.execute('''
+                SELECT player1, p1confirm, player2, p2confirm FROM matches
+                WHERE player1 = ? OR player2 = ?
+                ORDER BY id DESC LIMIT 1;
+                ''', (ctx.author.id, ctx.author.id))
+            result = c.fetchone()
+            
+            if result != None:
+                if ((result[0] == ctx.author.id) and (result[1] == 0)) or ((result[2] == ctx.author.id) and (result[3] == 0)):
+                    await ctx.send(f"{ctx.author.mention}, please report your last match with !report <wins> <losses>")
+                    return
+            
             async with ctx.channel.typing():
                 deckcheck = Deck.importDeck(str(decknum))
             
