@@ -19,14 +19,19 @@ class Deck:
         
         #Split the list into an array
         for i in page[decklists:deckliste].split("||"):
+            card = i.split(" ", 1)
+            card[0] = int(card[0])
+            card[1] = card[1].replace("&#x27;", "'")
             # Checks for singleton, ignores cards that allow multiples
-            if i[:1] != '1' and (i[2:] not in nonsingleton):
+            if (card[0] != 1 and (card[1] not in nonsingleton)) or (card in decklist):
                 return [1, "Deck isn't singleton"]
             # Checks for banned cards
-            elif (i[2:] in banned):
+            elif (card[1] in banned):
                 return [1, "Deck contains banned cards"]
             else:
-                decklist.append([ int(i[:1]), i[2:].replace("&#x27;", "'") ])
+                decklist.append(card)
+        
+        decklist = sorted(decklist, key=lambda x: x[1])
         
         # Get Basic land count, and add to deck list
         basics = []

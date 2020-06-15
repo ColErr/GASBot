@@ -23,6 +23,11 @@ class MatcherCog(commands.Cog):
     
     @commands.command(name="lfg", help="Join the LFG queue with !lfg <aetherhub deck number>")
     async def lfg(self, ctx, decknum: int):
+        for x in self.lfgqueue:
+            if ctx.author.id == x[0]:
+                await ctx.send(f"{ctx.author.mention}, you already in the queue")
+                return
+        
         c = self.database.cursor()
         c.execute('''
             SELECT player1, p1confirm, player2, p2confirm FROM matches
@@ -77,7 +82,7 @@ class MatcherCog(commands.Cog):
                 return
             if result[5] == 1:
                 if (result[3] != wins) or (result[6] != losses):
-                    await ctx.send(f"{ctx.author.mention}, there is a mismatch with your last opponent")
+                    await ctx.send(f"{ctx.author.mention}, there is a mismatch with your last opponent. They reported {result[3]}-{result[6]} for match #{result[0]}")
                     return
             self.database.execute('''
                 UPDATE matches SET
@@ -92,7 +97,7 @@ class MatcherCog(commands.Cog):
                 return
             if result[2] == 1:
                 if (result[6] != wins) or (result[3] != losses):
-                    await ctx.send(f"{ctx.author.mention}, there is a mismatch with your last opponent")
+                    await ctx.send(f"{ctx.author.mention}, there is a mismatch with your last opponent. They reported {result[6]}-{result[3]} for match #{result[0]}")
                     return
             self.database.execute('''
                 UPDATE matches SET
@@ -106,7 +111,47 @@ class MatcherCog(commands.Cog):
         await ctx.send(f"{ctx.author.mention}, your match result has been recorded")
         return
     
-    @commands.command(name="leave")
+    @commands.command(name="correction", help="Correct the record on a previous match with !correction <match #> <wins> <losses>")
+    async def correctmatch(self, ctx, matchnum: int, wins: int, losses: int):
+        c = self.database.cursor()
+        c.execute('''
+            SELECT player1, p1confirm, player2, p2confirm FROM matches
+            WHERE id = ?;
+            ''', (matchnum,))
+        result = c.fetchone()
+        
+        if ctx.author.id != result[0] and ctx.author.id != result[2]:
+            await ctx.send(f"{ctx.author.mention}, that was not your match")
+            return
+        
+        if ctx.author.id == result[0]:
+            if result[1] == 0:
+                await ctx.send(f"{ctx.author.mention}, you haven't reported that match")
+            if result[3] == 1:
+                await ctx.send(f"{ctx.author.mention}, your opponent already confirmed that match")
+                return
+            self.database.execute('''
+                UPDATE matches SET
+                p1wins = ?,
+                p2wins = ?
+                WHERE id = ?;
+            ''', (wins, losses, matchnum))
+        else:
+            if result[3] == 0:
+                await ctx.send(f"{ctx.author.mention}, you haven't reported that match")
+            if result[1] == 1:
+                await ctx.send(f"{ctx.author.mention}, your opponent already confirmed that match")
+                return
+            self.database.execute('''
+                UPDATE matches SET
+                p1wins = ?,
+                p2wins = ?
+                WHERE id = ?;
+            ''', (losses, wins, matchnum))
+        self.database.commit()
+        await ctx.send(f"{ctx.author.mention}, the match has been updated")
+    
+    @commands.command(name="leave", help="Leave the current queue")
     async def leavequeue(self, ctx):
         i=0
         for x in self.lfgqueue:

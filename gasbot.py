@@ -1,5 +1,6 @@
 import discord
 import os
+import traceback
 from os.path import isfile
 from datetime import datetime, timedelta
 from discord.ext import commands
@@ -38,9 +39,11 @@ class GASBot:
             if isinstance(error, commands.CommandNotFound):
                 print(f"Command {ctx.command.name} not found")
                 return
-            if isinstance(error, commands.MissingRequiredArgument):
+            elif isinstance(error, commands.MissingRequiredArgument):
                 print("Command missing arguments")
                 await ctx.send(ctx.command.help)
+            else:
+                print(traceback.format_exc())
         
     
     def setup_commands(self):
@@ -60,6 +63,13 @@ class GASBot:
         async def reloadext(ctx, cog):
             self.bot.reload_extension("cogs." + cog)
             await ctx.send(f"Cog {cog} has been reloaded")
+            return
+            
+        @self.bot.command(name="loadcog")
+        @check_only_me()
+        async def loadext(ctx, cog):
+            self.bot.load_extension("cogs." + cog)
+            await ctx.send(f"Cog {cog} has been loaded")
             return
             
     def setup_db(self, name):
