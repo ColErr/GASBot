@@ -36,7 +36,7 @@ class MatcherCog(commands.Cog):
         ''', (ctx.author.id, ))
         
         result = c.fetchone()
-        if result = None:
+        if result == None:
             await ctx.send(f"{ctx.author.mention}, please register with !register <arena name> before joining")
             return
         arenaname = result[0]

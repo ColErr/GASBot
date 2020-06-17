@@ -60,7 +60,7 @@ class GASBot:
                 self.database.execute('''
                 INSERT INTO players(id, arenaname, matchwins, matchlosses) 
                 VALUES(?, ?, 0, 0);
-                '''", (ctx.author.id, arenaname))
+                ''', (ctx.author.id, arenaname))
                 self.database.commit()
                 await ctx.send(f"{ctx.author.mention}, you have successfully registered")
             else:
@@ -101,7 +101,9 @@ class GASBot:
         c.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tables = []
         for table in c:
-            tables.append(table)
+            tables.append(table[0])
+        
+        print(tables)
         
         if "matches" not in tables:
             self.database.execute('''
