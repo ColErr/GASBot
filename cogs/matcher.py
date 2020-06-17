@@ -25,10 +25,22 @@ class MatcherCog(commands.Cog):
     async def lfg(self, ctx, decknum: int):
         for x in self.lfgqueue:
             if ctx.author.id == x[0]:
-                await ctx.send(f"{ctx.author.mention}, you already in the queue")
+                await ctx.send(f"{ctx.author.mention}, you are already in the queue")
                 return
         
         c = self.database.cursor()
+        
+        c.execute('''
+            SELECT arenaname FROM players
+            WHERE id = ?;
+        ''', (ctx.author.id, ))
+        
+        result = c.fetchone()
+        if result = None:
+            await ctx.send(f"{ctx.author.mention}, please register with !register <arena name> before joining")
+            return
+        arenaname = result[0]
+        
         c.execute('''
             SELECT player1, p1confirm, player2, p2confirm FROM matches
             WHERE player1 = ? OR player2 = ?
@@ -49,7 +61,7 @@ class MatcherCog(commands.Cog):
             return
         
         if len(self.lfgqueue) == 0:
-            self.lfgqueue.append([ctx.author.id, deckcheck[1]])
+            self.lfgqueue.append([ctx.author.id, deckcheck[1], arenaname])
             await ctx.send(f"{ctx.author.mention}, you have joined the queue")
         else:
             match = self.lfgqueue.pop(0)
@@ -59,7 +71,7 @@ class MatcherCog(commands.Cog):
                 VALUES(?, ?, 0, 0, ?, ?, 0, 0);
                 ''', (match[0], match[1], ctx.author.id, deckcheck[1]))
             self.database.commit()
-            await ctx.send(f"{ctx.author.mention}, you are playing {opp.mention}")
+            await ctx.send(f"{ctx.author.mention} ({arenaname}), you are playing {opp.mention} ({match[2]})")
         return
         
     @commands.command(name="report", help="Report your match result with !report <wins> <losses>")
