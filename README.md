@@ -6,10 +6,11 @@ Currently deck-checks and adds to a queue, then will match people as the queue f
 as well as some statistics on deck/player win percentages.
 
 ## Functions
-!lfg <aetherhub deck number>:			Performs a deck check, then adds a user to the queue
-!leave:									Leaves the queue
-!report <wins> <losses>: 				Report the results of your last match
-!correction <match #> <wins> <losses>:	Allows a user to change the results of their incorrectly reported matches
+!lfg <aetherhub deck number>:			Performs a deck check, then adds a user to the queue  
+!leave:									Leaves the queue  
+!report <wins> <losses>: 				Report the results of your last match  
+!correction <match #> <wins> <losses>:	Allows a user to change the results of their incorrectly reported matches  
+!participate:							Adds a user to the "Tournament Participant" group
 
 ## Todo
 * Add tournament/league queues
