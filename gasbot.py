@@ -103,8 +103,6 @@ class GASBot:
         for table in c:
             tables.append(table[0])
         
-        print(tables)
-        
         if "matches" not in tables:
             self.database.execute('''
                 CREATE TABLE matches(
